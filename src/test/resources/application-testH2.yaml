@@ -1,0 +1,11 @@
+spring:
+  test:
+    database:
+      replace: none
+  datasource:
+    url: jdbc:h2:mem:db;NON_KEYWORDS=VALUE
+  liquibase:
+    change-log: changelog-h2.sql
+  sql:
+    init:
+      mode: always
