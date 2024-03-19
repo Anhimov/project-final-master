@@ -19,19 +19,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import static com.javarush.jira.bugtracking.ObjectType.TASK;
 import static com.javarush.jira.bugtracking.task.TaskUtil.fillExtraFields;
 import static com.javarush.jira.bugtracking.task.TaskUtil.makeActivity;
 import static com.javarush.jira.ref.ReferenceService.getRefTo;
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
 public class TaskService {
     static final String CANNOT_ASSIGN = "Cannot assign as %s to task with status=%s";
     static final String CANNOT_UN_ASSIGN = "Cannot unassign as %s from task with status=%s";
+    public static final String IN_PROGRESS = "in_progress";
+    public static final String READY_FOR_REVIEW = "ready_for_review";
+    public static final String DONE = "done";
 
     private final Handlers.TaskExtHandler handler;
     private final Handlers.ActivityHandler activityHandler;
@@ -138,6 +144,49 @@ public class TaskService {
         String possibleUserType = getRefTo(RefType.TASK_STATUS, task.getStatusCode()).getAux(1);
         if (!userType.equals(possibleUserType)) {
             throw new DataConflictException(String.format(assign ? CANNOT_ASSIGN : CANNOT_UN_ASSIGN, userType, task.getStatusCode()));
+        }
+    }
+
+    public Duration getTimeSpentInWork(Task task) {
+        List<Activity> activities = activityHandler.getRepository().findAllByTaskIdOrderByUpdatedAsc(task.getId());
+        LocalDateTime inProgressTime = activities.stream()
+                .filter(activity -> IN_PROGRESS.equals(activity.getStatusCode()))
+                .map(Activity::getUpdated)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        LocalDateTime readyForReviewTime = activities.stream()
+                .filter(activity -> READY_FOR_REVIEW.equals(activity.getStatusCode()))
+                .map(Activity::getUpdated)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        if (nonNull(inProgressTime) && nonNull(readyForReviewTime)) {
+            return Duration.between(inProgressTime, readyForReviewTime);
+        } else {
+            return Duration.ZERO;
+        }
+    }
+
+    public Duration getTimeSpentInTesting(Task task) {
+        List<Activity> activities = activityHandler.getRepository().findAllByTaskIdOrderByUpdatedAsc(task.getId());
+        LocalDateTime readyForReviewTime = null;
+        LocalDateTime doneTime = null;
+
+        for (Activity activity : activities) {
+            if (READY_FOR_REVIEW.equals(activity.getStatusCode())) {
+                readyForReviewTime = activity.getUpdated();
+            } else if (DONE.equals(activity.getStatusCode())) {
+                doneTime = activity.getUpdated();
+            }
+        }
+
+        if (nonNull(readyForReviewTime) && nonNull(doneTime)) {
+            return Duration.between(readyForReviewTime, doneTime);
+        } else {
+            return Duration.ZERO;
         }
     }
 }
