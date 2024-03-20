@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: jira-app
+    build:
+      context: .
+    image: jira-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - nginx
+    env_file:
+      - .env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/jira
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+    networks:
+      - backend
+
+  db:
+    container_name: db
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=jira
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - backend
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+#    depends_on:
+#      app:
+#        condition: service_started
+    #      restart: always
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

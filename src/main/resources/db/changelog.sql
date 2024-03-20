@@ -332,14 +332,14 @@ drop index UK_USER_BELONG;
 create unique index UK_USER_BELONG on USER_BELONG (OBJECT_ID, OBJECT_TYPE, USER_ID, USER_TYPE_CODE) where ENDPOINT is null;
 
 --changeset anhimov:add_activity_records
-
-insert into ACTIVITY (ID, AUTHOR_ID, TASK_ID, UPDATED, STATUS_CODE)
-values (5, 1, 5, CURRENT_TIMESTAMP - interval '10' day, 'in_progress'),
-       (6, 1, 4, CURRENT_TIMESTAMP - interval '9' day, 'in_progress'),
-       (7, 1, 3, CURRENT_TIMESTAMP - interval '8' day, 'in_progress'),
-       (8, 2, 3, CURRENT_TIMESTAMP - interval '7' day, 'ready_for_review'),
-       (9, 2, 4, CURRENT_TIMESTAMP - interval '6' day, 'ready_for_review'),
-       (10, 1, 5, CURRENT_TIMESTAMP - interval '5' day, 'ready_for_review'),
-       (11, 1, 4, CURRENT_TIMESTAMP - interval '4' day, 'done'),
-       (12, 2, 5, CURRENT_TIMESTAMP - interval '3' day, 'done'),
-       (13, 1, 3, CURRENT_TIMESTAMP - interval '2' day, 'done');
+--
+-- insert into ACTIVITY (ID, AUTHOR_ID, TASK_ID, UPDATED, STATUS_CODE)
+-- values (5, 1, 5, CURRENT_TIMESTAMP - interval '10' day, 'in_progress'),
+--        (6, 1, 4, CURRENT_TIMESTAMP - interval '9' day, 'in_progress'),
+--        (7, 1, 3, CURRENT_TIMESTAMP - interval '8' day, 'in_progress'),
+--        (8, 2, 3, CURRENT_TIMESTAMP - interval '7' day, 'ready_for_review'),
+--        (9, 2, 4, CURRENT_TIMESTAMP - interval '6' day, 'ready_for_review'),
+--        (10, 1, 5, CURRENT_TIMESTAMP - interval '5' day, 'ready_for_review'),
+--        (11, 1, 4, CURRENT_TIMESTAMP - interval '4' day, 'done'),
+--        (12, 2, 5, CURRENT_TIMESTAMP - interval '3' day, 'done'),
+--        (13, 1, 3, CURRENT_TIMESTAMP - interval '2' day, 'done');
